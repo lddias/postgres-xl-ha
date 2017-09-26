@@ -62,7 +62,7 @@ Path to the directory storing the Postgres-XL binaries. The resource agent uses 
       <shortdesc lang="en">Path to the Postgres-XL binaries</shortdesc>
       <content type="string" default="$OCF_RESKEY_bindir_default" />
     </parameter>
-    <parameter name="datadir" required="true">
+    <parameter name="datadir" required="1">
       <longdesc lang="en">
 Path to the coordinator data directory.
       </longdesc>
