@@ -21,6 +21,7 @@ OCF_RESKEY_port_default=5432
 pg_ctl=$OCF_RESKEY_bindir/pg_ctl
 pg_isready=$OCF_RESKEY_bindir/pg_isready
 psql=$OCF_RESKEY_bindir/psql
+pg_res_is_starting=false
 
 runasowner() {
     local loglevel=''
@@ -104,12 +105,14 @@ EOF
 ocf_start() {
     local is_slave
     local status
+    pg_res_is_starting=true
 
     test -f $OCF_RESKEY_datadir/recovery.conf
     is_slave=$?
 
     ocf_monitor
     status=$?
+    pg_res_is_starting=false
 
     if [ $is_slave -eq 0 ]; then
         if [ $status -eq $OCF_SUCCESS ]; then
@@ -160,6 +163,11 @@ ocf_monitor() {
     runasowner $loglevel "$pg_isready -h $OCF_RESKEY_host -p $OCF_RESKEY_port"
     case $? in
         0)  # accepting connections
+            if [ "$pg_res_is_starting" = true ] ; then
+                # always start as a "slave"...
+                return $OCF_SUCCESS
+            fi
+            # TODO: do this always?
             crm_master -l reboot -v 1000
             return $OCF_RUNNING_MASTER
             ;;
